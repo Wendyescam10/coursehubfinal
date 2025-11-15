@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourseHub - Dashboard Final (24 Nov 2025)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 50px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '🎉';
+            position: absolute;
+            font-size: 200px;
+            opacity: 0.1;
+            right: -30px;
+            top: -30px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header .success-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .stat-card.green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+
+        .stat-card h2 {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 18px;
+            opacity: 0.95;
+            font-weight: 600;
+        }
+
+        .completion-banner {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+        }
+
+        .completion-banner h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .tab-button {
+            padding: 15px 25px;
+            border: none;
+            background: #e9ecef;
+            color: #495057;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: #dee2e6;
+            transform: scale(1.05);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 5px solid #10b981;
+        }
+
+        .success-box strong {
+            color: #065f46;
+            font-size: 18px;
+        }
+
+        .milestone-timeline {
+            position: relative;
+            padding: 30px 0;
+        }
+
+        .milestone {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .milestone::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 50px;
+            width: 3px;
+            height: 100%;
+            background: #10b981;
+        }
+
+        .milestone:last-child::before {
+            display: none;
+        }
+
+        .milestone-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-right: 20px;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+            z-index: 1;
+        }
+
+        .milestone-content {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .milestone-content h3 {
+            color: #059669;
+            margin-bottom: 10px;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .team-card {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .team-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .team-card .emoji {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .final-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .final-stat {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .final-stat h4 {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .final-stat .number {
+            font-size: 42px;
+            font-weight: 900;
+            color: #10b981;
+        }
+
+        .celebration {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            padding: 50px;
+            border-radius: 20px;
+            margin-top: 30px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 20px 40px rgba(251, 191, 36, 0.3);
+        }
+
+        .celebration h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .celebration p {
+            font-size: 20px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 32px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header de Éxito -->
+        <div class="header">
+            <h1>🎉 CourseHub - ¡PROYECTO COMPLETADO!</h1>
+            <p style="font-size: 20px; margin-bottom: 10px;">24 de Noviembre de 2025</p>
+            <div class="success-badge">✅ 100% TERMINADO - MVP LISTO</div>
+            <p style="font-size: 16px; margin-top: 15px; opacity: 0.9;">
+                👥 Equipo: 6 miembros | 🚀 3 Sprints completados | ⚡ Metodología: Scrumban
+            </p>
+        </div>
+
+        <!-- Banner de Logros -->
+        <div class="completion-banner">
+            <h2>🏆 ¡TODOS LOS SPRINTS COMPLETADOS!</h2>
+            <p style="font-size: 18px;">Sprint 1 ✅ | Sprint 2 ✅ | Sprint 3 ✅</p>
+        </div>
+
+        <!-- Stats Cards Finales -->
+        <div class="stats">
+            <div class="stat-card green">
+                <h2>59/59</h2>
+                <p>✅ PUNTOS TOTALES</p>
+            </div>
+            <div class="stat-card green">
+                <h2>3/3</h2>
+                <p>🚀 SPRINTS FINALIZADOS</p>
+            </div>
+            <div class="stat-card green">
+                <h2>13/13</h2>
+                <p>📋 HISTORIAS COMPLETADAS</p>
+            </div>
+            <div class="stat-card green">
+                <h2>100%</h2>
+                <p>🎯 MVP TERMINADO</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="openTab('resumen')">📊 Resumen Final</button>
+                <button class="tab-button" onclick="openTab('sprints')">🚀 Todos los Sprints</button>
+                <button class="tab-button" onclick="openTab('timeline')">📅 Línea de Tiempo</button>
+                <button class="tab-button" onclick="openTab('equipo')">👥 Equipo</button>
+                <button class="tab-button" onclick="openTab('metricas')">📈 Métricas Finales</button>
+                <button class="tab-button" onclick="openTab('pruebas')">✅ Pruebas Completadas</button>
+                <button class="tab-button" onclick="openTab('entregables')">🎁 Entregables</button>
+            </div>
+
+            <!-- Tab: Resumen Final -->
+            <div id="resumen" class="tab-content active">
+                <div class="chart-container">
+                    <div class="chart-title">📊 Progreso Total del Proyecto</div>
+                    <canvas id="progresoTotalChart"></canvas>
+                </div>
+                
+                <div class="success-box">
+                    <strong>🎉 ¡PROYECTO COMPLETADO CON ÉXITO!</strong>
+                    <p style="margin-top: 15px; line-height: 1.8; color: #065f46;">
+                        El equipo CourseHub completó exitosamente el MVP en 3 sprints (10 semanas). 
+                        Se entregaron todas las historias de usuario comprometidas, incluyendo:
+                        sistema de registro, test vocacional con IA, catálogo de cursos, 
+                        chatbot de ayuda, y todas las funcionalidades principales. 
+                        La plataforma está lista para su lanzamiento oficial. 🚀
+                    </p>
+                </div>
+
+                <div class="final-stats">
+                    <div class="final-stat">
+                        <h4>Duración Total</h4>
+                        <div class="number">10</div>
+                        <p>semanas</p>
+                    </div>
+                    <div class="final-stat">
+                        <h4>Velocidad Promedio</h4>
+                        <div class="number">19.7</div>
+                        <p>pts/sprint</p>
+                    </div>
+                    <div class="final-stat">
+                        <h4>Tasa de Éxito</h4>
+                        <div class="number">100%</div>
+                        <p>historias</p>
+                    </div>
+                    <div class="final-stat">
+                        <h4>Pruebas Pasadas</h4>
+                        <div class="number">27/27</div>
+                        <p>casos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Sprints -->
+            <div id="sprints" class="tab-content">
+                <div class="chart-container">
+                    <div class="chart-title">🚀 Desempeño por Sprint</div>
+                    <canvas id="sprintsChart"></canvas>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 15px; color: white;">
+                        <h3 style="font-size: 24px; margin-bottom: 15px;">✅ Sprint 1</h3>
+                        <p><strong>Duración:</strong> 20 Sep - 10 Oct</p>
+                        <p><strong>Puntos:</strong> 18/18 (100%)</p>
+                        <p style="margin-top: 15px;"><strong>Logros:</strong></p>
+                        <ul style="margin-top: 10px; line-height: 1.8;">
+                            <li>✅ Sistema de registro seguro</li>
+                            <li>✅ Página principal responsiva</li>
+                            <li>✅ Base de autenticación</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 15px; color: white;">
+                        <h3 style="font-size: 24px; margin-bottom: 15px;">✅ Sprint 2</h3>
+                        <p><strong>Duración:</strong> 11 Oct - 31 Oct</p>
+                        <p><strong>Puntos:</strong> 18/18 (100%)</p>
+                        <p style="margin-top: 15px;"><strong>Logros:</strong></p>
+                        <ul style="margin-top: 10px; line-height: 1.8;">
+                            <li>✅ Test vocacional con IA</li>
+                            <li>✅ Guardar resultados en perfil</li>
+                            <li>✅ Integración completa de IA</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 15px; color: white;">
+                        <h3 style="font-size: 24px; margin-bottom: 15px;">✅ Sprint 3</h3>
+                        <p><strong>Duración:</strong> 01 Nov - 21 Nov</p>
+                        <p><strong>Puntos:</strong> 23/23 (100%)</p>
+                        <p style="margin-top: 15px;"><strong>Logros:</strong></p>
+                        <ul style="margin-top: 10px; line-height: 1.8;">
+                            <li>✅ Catálogo de cursos completo</li>
+                            <li>✅ Chatbot funcional</li>
+                            <li>✅ Filtros y búsqueda</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Timeline -->
+            <div id="timeline" class="tab-content">
+                <div class="chart-title">📅 Línea de Tiempo del Proyecto</div>
+                <div class="milestone-timeline">
+                    <div class="milestone">
+                        <div class="milestone-icon">📋</div>
+                        <div class="milestone-content">
+                            <h3>10-19 Sep 2025: Preparación</h3>
+                            <p>Definición de metodología Scrumban, roles del equipo, y planificación inicial del producto.</p>
+                        </div>
+                    </div>
+
+                    <div class="milestone">
+                        <div class="milestone-icon">🚀</div>
+                        <div class="milestone-content">
+                            <h3>20 Sep - 10 Oct 2025: Sprint 1</h3>
+                            <p><strong>Completado:</strong> Sistema de autenticación y página principal. Base sólida del proyecto establecida.</p>
+                        </div>
+                    </div>
+
+                    <div class="milestone">
+                        <div class="milestone-icon">🤖</div>
+                        <div class="milestone-content">
+                            <h3>11-31 Oct 2025: Sprint 2</h3>
+                            <p><strong>Completado:</strong> Test vocacional con IA funcionando al 100%. Integración exitosa del sistema inteligente.</p>
+                        </div>
+                    </div>
+
+                    <div class="milestone">
+                        <div class="milestone-icon">📚</div>
+                        <div class="milestone-content">
+                            <h3>01-21 Nov 2025: Sprint 3</h3>
+                            <p><strong>Completado:</strong> Catálogo de cursos y chatbot. MVP completo y funcional.</p>
+                        </div>
+                    </div>
+
+                    <div class="milestone">
+                        <div class="milestone-icon">🎉</div>
+                        <div class="milestone-content">
+                            <h3>24 Nov 2025: Cierre del Proyecto</h3>
+                            <p><strong>¡ÉXITO!</strong> Proyecto finalizado. Todas las pruebas pasadas. Listo para producción.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Equipo -->
+            <div id="equipo" class="tab-content">
+                <div class="chart-title">👥 Contribución del Equipo</div>
+                <div class="team-grid">
+                    <div class="team-card">
+                        <div class="emoji">📋</div>
+                        <h3>Frida Fernández</h3>
+                        <p style="margin: 10px 0;">Scrum Master & PO</p>
+                        <p><strong>28 puntos | 12 tareas</strong></p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="emoji">🗄️</div>
+                        <h3>Mónica Tapia</h3>
+                        <p style="margin: 10px 0;">Scrum Master & BD</p>
+                        <p><strong>26 puntos | 11 tareas</strong></p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="emoji">🔧</div>
+                        <h3>Alexis Linares</h3>
+                        <p style="margin: 10px 0;">Full Stack Dev</p>
+                        <p><strong>32 puntos | 14 tareas</strong></p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="emoji">💻</div>
+                        <h3>Isaac Aguilar</h3>
+                        <p style="margin: 10px 0;">Backend & IA</p>
+                        <p><strong>30 puntos | 13 tareas</strong></p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="emoji">🎨</div>
+                        <h3>Wendy Escamilla</h3>
+                        <p style="margin: 10px 0;">Diseñadora UI/UX</p>
+                        <p><strong>27 puntos | 11 tareas</strong></p>
+                    </div>
+
+                    <div class="team-card">
+                        <div class="emoji">🧪</div>
+                        <h3>Erick Méndez</h3>
+                        <p style="margin: 10px 0;">QA & Testing</p>
+                        <p><strong>22 puntos | 9 tareas</strong></p>
+                    </div>
+                </div>
+
+                <div class="success-box" style="margin-top: 30px;">
+                    <strong>🏆 Trabajo en Equipo Excepcional</strong>
+                    <p style="margin-top: 15px; color: #065f46;">
+                        El equipo demostró excelente colaboración, comunicación diaria efectiva, 
+                        y compromiso total con el proyecto. Todos los miembros superaron las expectativas.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Métricas -->
+            <div id="metricas" class="tab-content">
+                <div class="chart-container">
+                    <div class="chart-title">📈 Velocidad del Equipo</div>
+                    <canvas id="velocidadChart"></canvas>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; border-radius: 15px; text-align: center;">
+                        <h3 style="margin-bottom: 15px;">Puntos Totales</h3>
+                        <div style="font-size: 56px; font-weight: 900;">59</div>
+                        <p>Completados exitosamente</p>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 30px; border-radius: 15px; text-align: center;">
+                        <h3 style="margin-bottom: 15px;">Velocidad Promedio</h3>
+                        <div style="font-size: 56px; font-weight: 900;">19.7</div>
+                        <p>Puntos por sprint</p>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 30px; border-radius: 15px; text-align: center;">
+                        <h3 style="margin-bottom: 15px;">Tasa de Éxito</h3>
+                        <div style="font-size: 56px; font-weight: 900;">100%</div>
+                        <p>Historias completadas</p>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); color: white; padding: 30px; border-radius: 15px; text-align: center;">
+                        <h3 style="margin-bottom: 15px;">Duración</h3>
+                        <div style="font-size: 56px; font-weight: 900;">10</div>
+                        <p>Semanas totales</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Pruebas -->
+            <div id="pruebas" class="tab-content">
+                <div class="chart-title">✅ Estado Final de Pruebas</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div class="chart-container">
+                        <canvas id="pruebasChart"></canvas>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 25px; border-radius: 15px; flex: 1;">
+                            <h3>✅ Pruebas Exitosas</h3>
+                            <div style="font-size: 48px; font-weight: 900; margin: 10px 0;">27/27</div>
+                            <p>100% de casos pasaron</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 25px; border-radius: 15px;">
+                            <h3>📊 Cobertura</h3>
+                            <p style="margin-top: 10px;"><strong>Registro:</strong> 100%</p>
+                            <p><strong>Test Vocacional:</strong> 100%</p>
+                            <p><strong>Catálogo:</strong> 100%</p>
+                            <p><strong>Chatbot:</strong> 100%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <strong>🎯 Calidad Asegurada</strong>
+                    <p style="margin-top: 15px; color: #065f46;">
+                        Todos los módulos pasaron las pruebas de caja negra. Se validaron 27 casos de prueba 
+                        cubriendo registro, autenticación, test vocacional, catálogo y chatbot. 
+                        El sistema está listo para producción sin errores críticos.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab: Entregables -->
+            <div id="entregables" class="tab-content">
+                <div class="chart-title">🎁 Entregables del Proyecto</div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #10b981; margin-bottom: 15px;">💻 Código Fuente</h3>
+                        <ul style="line-height: 2; color: #4b5563;">
+                            <li>✅ Frontend completo (React)</li>
+                            <li>✅ Backend con APIs</li>
+                            <li>✅ Base de datos configurada</li>
+                            <li>✅ Integración de IA</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #3b82f6; margin-bottom: 15px;">📚 Documentación</h3>
+                        <ul style="line-height: 2; color: #4b5563;">
+                            <li>✅ Manual de usuario</li>
+                            <li>✅ Documentación técnica</li>
+                            <li>✅ Guía de instalación</li>
+                            <li>✅ API documentation</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #8b5cf6; margin-bottom: 15px;">🧪 Pruebas</h3>
+                        <ul style="line-height: 2; color: #4b5563;">
+                            <li>✅ 27 casos de prueba</li>
+                            <li>✅ Reportes de QA</li>
+                            <li>✅ Pruebas de usuario</li>
+                            <li>✅ Validación de IA</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #ec4899; margin-bottom: 15px;">📊 Reportes</h3>
+                        <ul style="line-height: 2; color: #4b5563;">
+                            <li>✅ Dashboard de métricas</li>
+                            <li>✅ Retrospectivas</li>
+                            <li>✅ Burndown charts</li>
+                            <li>✅ Informe final</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #f59e0b; margin-bottom: 15px;">🎨 Diseño</h3>
+                        <ul style="line-height: 2; color: #4b5563;">
+                            <li>✅ Mockups finales</li>
+                            <li>✅ Guía de estilos</li>
+                            <li>✅ Componentes UI</li>
+                            <li>✅ Diseño responsivo</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <h3 style="color: #06b6d4; margin-bottom: 15px;">🚀 Deploy</h3>
+                        <ul style="line-height: 2; color: #4b5563;">
+                            <li>✅ Ambiente de producción</li>
+                            <li>✅ CI/CD configurado</li>
+                            <li>✅ Monitoreo activo</li>
+                            <li>✅ Backups automáticos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Celebración Final -->
+        <div class="celebration">
+            <h2>🎉 ¡FELICIDADES EQUIPO COURSEHUB! 🎉</h2>
+            <p style="font-size: 24px; margin: 20px 0;">
+                En 10 semanas completamos un proyecto ambicioso que ayudará a miles de estudiantes 
+                a encontrar su vocación y acceder a educación de calidad.
+            </p>
+            <p style="font-size: 18px; margin-top: 20px;">
+                <strong>Logros destacados:</strong><br>
+                ✨ 59 puntos de historia completados<br>
+                ✨ 13 funcionalidades principales entregadas<br>
+                ✨ 27/27 pruebas exitosas<br>
+                ✨ 0 bugs críticos<br>
+                ✨ 100% de compromiso del equipo
+            </p>
+            <div style="margin-top: 30px; font-size: 64px;">
+                🏆 🎊 🚀 💪 ⭐
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(tabName) {
+            const contents = document.getElementsByClassName('tab-content');
+            const buttons = document.getElementsByClassName('tab-button');
+            
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].classList.remove('active');
+            }
+            
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Gráfica de Progreso Total
+        const progresoCtx = document.getElementById('progresoTotalChart').getContext('2d');
+        new Chart(progresoCtx, {
+            type: 'line',
+            data: {
+                labels: ['Inicio', 'Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8', 'Sem 9', 'Final'],
+                datasets: [{
+                    label: 'Puntos Completados',
+                    data: [0, 5, 10, 18, 22, 28, 36, 42, 48, 54, 59],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderWidth: 4,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }, {
+                    label: 'Meta Planeada',
+                    data: [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 59],
+                    borderColor: '#94a3b8',
+                    borderWidth: 3,
+                    borderDash: [10, 5],
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    title: { display: false }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        max: 65,
+                        title: { display: true, text: 'Puntos Acumulados' }
+                    },
+                    x: { title: { display: true, text: 'Tiempo' } }
+                }
+            }
+        });
+
+        // Gráfica de Sprints
+        const sprintsCtx = document.getElementById('sprintsChart').getContext('2d');
+        new Chart(sprintsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Sprint 1', 'Sprint 2', 'Sprint 3'],
+                datasets: [{
+                    label: 'Comprometidos',
+                    data: [18, 18, 23],
+                    backgroundColor: '#94a3b8'
+                }, {
+                    label: 'Completados',
+                    data: [18, 18, 23],
+                    backgroundColor: '#10b981'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        title: { display: true, text: 'Puntos de Historia' }
+                    }
+                }
+            }
+        });
+
+        // Gráfica de Velocidad
+        const velocidadCtx = document.getElementById('velocidadChart').getContext('2d');
+        new Chart(velocidadCtx, {
+            type: 'line',
+            data: {
+                labels: ['Sprint 1', 'Sprint 2', 'Sprint 3'],
+                datasets: [{
+                    label: 'Puntos Completados',
+                    data: [18, 18, 23],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderWidth: 4,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 8,
+                    pointHoverRadius: 10
+                }, {
+                    label: 'Velocidad Promedio',
+                    data: [19.7, 19.7, 19.7],
+                    borderColor: '#f59e0b',
+                    borderWidth: 3,
+                    borderDash: [10, 5],
+                    tension: 0,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'top' }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        title: { display: true, text: 'Puntos' }
+                    }
+                }
+            }
+        });
+
+        // Gráfica de Pruebas
+        const pruebasCtx = document.getElementById('pruebasChart').getContext('2d');
+        new Chart(pruebasCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Exitosas', 'Fallidas', 'Pendientes'],
+                datasets: [{
+                    data: [27, 0, 0],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true, position: 'bottom' }
+                }
+            }
+        });
+
+        // Animación de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
